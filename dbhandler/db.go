@@ -25,16 +25,16 @@ func InitConn(dbMap map[string]conf.Db) map[string]*sql.DB{
     return connMap
 }
 
-func GetAllStruct(connMap map[string]*sql.DB) map[string]string{
-    var dbstructMap = make(map[string]string)
+func GetAllStruct(connMap map[string]*sql.DB) map[string]interface{}{
+    var dbstructMap = make(map[string]interface{})
     for k, v := range connMap {
        dbstructMap[k] = getDBStruct(v) 
     }
     return dbstructMap
 }
 
-func getDBStruct(conn *sql.DB) string {
-    var structstring string
+func getDBStruct(conn *sql.DB) map[string]string {
+    var tablestruct = make(map[string]string) 
     rows, err := conn.Query("show tables")
     if err != nil {
         fmt.Println("query failed")
@@ -54,10 +54,10 @@ func getDBStruct(conn *sql.DB) string {
     for _, v := range tableList {
         var tmpstr string
         tmpstr = getTableStruct(conn, v)
-        structstring += tmpstr
+        tablestruct[v] = tmpstr
     }
 
-    return structstring
+    return tablestruct
 }
 
 func getTableStruct(conn *sql.DB, table string) string {

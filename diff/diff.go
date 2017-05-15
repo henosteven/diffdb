@@ -3,9 +3,10 @@ package main
 import (
     "fmt"
     "conf"
-    "notify"
+    //"notify"
     "dbhandler"
     "database/sql"
+    "regexp"
 )
 
 func main() {
@@ -14,16 +15,37 @@ func main() {
     var connMap map[string]*sql.DB
     connMap = dbhandler.InitConn(conf.DbMap)
 
-    var dbstructMap map[string]string
+    var dbstructMap map[string]interface{}
     dbstructMap = dbhandler.GetAllStruct(connMap)
 
+    var difftable []string
     for k, v := range conf.CompareMap {
-       if dbstructMap[k] != dbstructMap[v] {
-           fmt.Println("different")
-           notify.SendDingDing("different")
-       } else {
-           fmt.Println("same")
-           notify.SendDingDing("same")
-       }
+        tmpMap := dbstructMap[k].(map[string]string)
+        tmpTargetMap := dbstructMap[v].(map[string]string)
+        for  _table, _tablesrtuct := range tmpMap {
+            if diffStruct(_tablesrtuct, tmpTargetMap[_table]) {
+                difftable = append(difftable, _table)
+            }
+        }
     }
+
+    if difftable != nil {
+        fmt.Println(difftable)
+        notify.SendDingDing(difftable)
+    }
+}
+
+func diffStruct(table1 string, table2 string) bool {
+    var result bool = true
+    if conf.IgnoreAutoIncrement {
+        reg := regexp.MustCompile("AUTO_INCREMENT=\\d")
+        table1 = reg.ReplaceAllString(table1, "")
+        table2 = reg.ReplaceAllString(table2, "")
+    }
+
+    if table1 == table2 {
+        result = false
+    }
+
+    return result
 }

@@ -17,6 +17,7 @@ var (
     DbMap map[string]Db
     CompareMap map[string]string
     DingDingUrl string
+    IgnoreAutoIncrement bool
 )
 
 func LoadConfigFile(confPath string) {
@@ -54,4 +55,10 @@ func LoadConfigFile(confPath string) {
     }
 
     DingDingUrl, _ = cfg.GetValue("dingding", "url")
+    tmpIgnoreAutoIncrement, _ := cfg.GetValue("ignore", "autoincrement")
+    if tmpIgnoreAutoIncrement == "yes" {
+        IgnoreAutoIncrement = true
+    } else {
+        IgnoreAutoIncrement = false
+    }
 }
